@@ -34,7 +34,7 @@ To get this n8n workflow up and running, follow these steps:
 
    ->Restrict your API key to only the Generative Language API and specific IP addresses/websites for security.
 
-##Workflow Import
+# Workflow Import
 1.Download the Workflow JSON: Obtain the workflow file (e.g., Arin_Balyan-instagram-scraper-workflow.json).
 
 2.Import into n8n:
@@ -46,4 +46,27 @@ To get this n8n workflow up and running, follow these steps:
  ->Paste the content of the downloaded JSON file or upload the file directly.
 
  ->Click "Import Workflow".
- 
+
+ # Environment Variables & Credentials
+1.Google Cloud API Key Setup:
+
+  ->In your n8n instance, go to "Credentials" (usually found on the left sidebar).
+
+  ->Click "New Credential".
+
+  ->Search for and select "Google Cloud API".
+
+  ->Credential Name: Enter a descriptive name, e.g., Instagram_Gemini_Rating_Key.
+
+  ->API Key: Paste your Google Cloud API secret key into the designated field.
+
+  ->Click "Save".
+  2.Connect Credential to Node:
+
+   ->Go back to your imported workflow.
+
+   ->Locate the "AI Agent" (Google Gemini) node.
+
+   ->In the node's settings, under "Credential," select the Google Cloud credential you just created (Instagram_Gemini_Rating_Key).
+
+# How to Run the Workflow
