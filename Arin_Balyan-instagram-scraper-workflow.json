@@ -1,0 +1,232 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a926b22a-0b45-44ce-970a-0ed8b3c53816",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://i.instagram.com/api/v1/users/web_profile_info",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "username",
+              "value": "={{ $json.name }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-ig-app-id",
+              "value": "936619743392459"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "036963bf-9b00-4ee7-84c4-4f73b04c9bd2",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const responseData = items[0].json;\nlet extractedPosts = [];\nconst timelineMediaEdges = responseData.data.user.edge_owner_to_timeline_media.edges;\n\nfor (let i = 0; i < Math.min(timelineMediaEdges.length, 12); i++) {\n    const postNode = timelineMediaEdges[i].node;\n\n    let caption = '';\n    if (postNode.edge_media_to_caption && postNode.edge_media_to_caption.edges.length > 0) {\n        caption = postNode.edge_media_to_caption.edges[0].node.text;\n    }\n\n    const instagramPostUrl = `https://www.instagram.com/p/${postNode.shortcode}/`;\n\n    let mediaUrl = '';\n    let isVideo = postNode.is_video;\n    if (isVideo) {\n        mediaUrl = postNode.video_url;\n    } else {\n        mediaUrl = postNode.display_url;\n    }\n\n    const likes = postNode.edge_media_preview_like ? postNode.edge_media_preview_like.count : 0;\n    const comments = postNode.edge_media_to_comment ? postNode.edge_media_to_comment.count : 0;\n    const postedAtTimestamp = postNode.taken_at_timestamp;\n    const postedAtDate = new Date(postedAtTimestamp * 1000).toISOString();\n\n    extractedPosts.push({\n        id: postNode.id,\n        shortcode: postNode.shortcode,\n        instagramPostUrl: instagramPostUrl,\n        type: isVideo ? 'video' : 'image',\n        mediaUrl: mediaUrl,\n        caption: caption,\n        likes: likes,\n        comments: comments,\n        postedAtTimestamp: postedAtTimestamp,\n        postedAtDate: postedAtDate\n    });\n}\nreturn extractedPosts.map(post => ({ json: post }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "81cf4138-559f-4982-9eaf-a74eccd32cbf",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "let htmlOutput = `\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Instagram Posts</title>\n    <style>\n        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f0f2f5; }\n        .grid-container {\n            display: grid;\n            grid-template-columns: repeat(3, 1fr); /* 3 columns for 3x4 grid */\n            gap: 20px;\n            max-width: 900px;\n            margin: 0 auto;\n            padding: 20px;\n            background-color: #fff;\n            border-radius: 8px;\n            box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n        }\n        .post-card {\n            border: 1px solid #ddd;\n            border-radius: 8px;\n            overflow: hidden;\n            background-color: #fff;\n            box-shadow: 0 1px 3px rgba(0,0,0,0.05);\n            display: flex;\n            flex-direction: column;\n        }\n        .post-media {\n            width: 100%;\n            height: 0;\n            padding-bottom: 125%; /* For 4:5 aspect ratio, common for IG vertical posts */\n            position: relative;\n            overflow: hidden;\n            background-color: #eee; /* Placeholder background */\n        }\n        .post-media img, .post-media video {\n            position: absolute;\n            top: 0;\n            left: 0;\n            width: 100%;\n            height: 100%;\n            object-fit: cover; /* Ensures media fills the container without distortion */\n        }\n        .post-details {\n            padding: 10px;\n            font-size: 0.9em;\n            color: #333;\n            flex-grow: 1;\n            display: flex;\n            flex-direction: column;\n            justify-content: space-between;\n        }\n        .post-caption {\n            margin-bottom: 5px;\n            line-height: 1.4;\n        }\n        .post-stats {\n            display: flex;\n            justify-content: space-between;\n            font-size: 0.85em;\n            color: #555;\n            margin-top: auto; /* Pushes stats to the bottom */\n            padding-top: 5px;\n            border-top: 1px solid #eee;\n        }\n        .post-stats span {\n            display: flex;\n            align-items: center;\n        }\n        .post-stats img {\n            width: 16px;\n            height: 16px;\n            margin-right: 5px;\n        }\n        .profile-header {\n            text-align: center;\n            margin-bottom: 30px;\n        }\n        .profile-header h1 {\n            font-size: 2em;\n            color: #333;\n        }\n        .profile-header p {\n            color: #666;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"grid-container\">\n`;\n\n// Loop through the items (posts)\nfor (const item of items) {\n    const post = item.json;\n    const mediaTag = post.type === 'video'\n        ? `<video controls preload=\"none\" poster=\"${post.mediaUrl.replace('.mp4', '.jpg')}\" src=\"${post.mediaUrl}\"></video>`\n        : `<img src=\"${post.mediaUrl}\" alt=\"Instagram Post\">`;\n\n    htmlOutput += `\n        <div class=\"post-card\">\n            <div class=\"post-media\">\n                ${mediaTag}\n            </div>\n            <div class=\"post-details\">\n                <p class=\"post-caption\">${post.caption.substring(0, 100)}...</p>\n                <div class=\"post-stats\">\n                    <span>❤️ ${post.likes}</span>\n                    <span>💬 ${post.comments}</span>\n                    <span>${new Date(post.postedAtTimestamp * 1000).toLocaleDateString()}</span>\n                </div>\n            </div>\n        </div>\n    `;\n}\n\nhtmlOutput += `\n    </div>\n</body>\n</html>\n`;\n\nreturn [{ json: { html: htmlOutput } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "bb418ccf-c3a5-41b3-823b-acd68450cd16",
+      "name": "HTML readable format"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.aiPromptText }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        780,
+        260
+      ],
+      "id": "ebda6586-088f-4ef8-a143-e3f0f76eb770",
+      "name": "AI Agent1",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        640,
+        480
+      ],
+      "id": "18feaf08-d099-4739-99c0-f93bcb542f94",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "9RxiHEujlW9yAuiG",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const postsData = [];\nfor (const item of $input.all()) {\n    postsData.push({\n        caption: item.json.caption,\n        likes: item.json.likes,\n        comments: item.json.comments\n    });\n}\n\nlet inputDataSection = \"\";\npostsData.forEach((post, index) => {\n    const escapedCaption = post.caption ? post.caption.replace(/`/g, '\\\\`') : '';\n    const postLikes = post.likes !== null && post.likes !== undefined ? post.likes : 'N/A';\n    const postComments = post.comments !== null && post.comments !== undefined ? post.comments : 'N/A';\n\n    inputDataSection += `Post ${index + 1}:\\n`;\n    inputDataSection += `Caption: \"${escapedCaption}\"\\n`;\n    inputDataSection += `Likes: ${postLikes}\\n`;\n    inputDataSection += `Comments: ${postComments}\\n\\n`;\n});\n\nconst fullPrompt = `You are an expert social media analyst specializing in Instagram profile evaluation. Your task is to provide a comprehensive 'IG Score' (a sentiment-informed overall rating) for a given Instagram profile.\n\n**Input Data:**\nHere are the details from the 12 most recent Instagram posts from the profile:\n\n${inputDataSection}\n\n**Task:**\n1.  **Assess Overall Consistency, Engagement Potential, and Professionalism:** Based on the content and tone of the captions, and considering the engagement metrics (likes and comments) for each post, evaluate the profile's overall consistency in messaging, its potential to engage its audience, and the level of professionalism conveyed.\n2.  **Calculate the 'IG Score':** Provide a numerical rating from 1 to 10, where 1 is poor and 10 is excellent. This score should primarily reflect the profile's overall consistency, engagement potential, and professionalism.\n3.  **Provide a Concise Explanation:** Include a brief, concise explanation (maximum 2 sentences) justifying the rating. Highlight key strengths or areas for improvement related to the mentioned criteria (consistency, engagement, professionalism).\n\n**OUTPUT FORMAT**\nPlease provide your response in the following format:\nFor each Post[1] to Post[2]....tell me all the 12 posts IG score one by one\nIG Score: [Numerical score from 1-10]\nExplanation: [Concise explanation, max 2 sentences]\n\nThis will not be shown to the user but is for internal use.`;\n\nreturn [{\n    json: {\n        aiPromptText: fullPrompt\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        420,
+        240
+      ],
+      "id": "d93089c5-ea74-4f06-93bc-1d1226098a9d",
+      "name": "Prompt"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        900,
+        500
+      ],
+      "id": "b37f4c74-fe36-4ec2-a267-52a0941a5c53",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {
+    "When clicking ‘Test workflow’": [
+      {
+        "json": {
+          "name": "nike",
+          "number_item": 1
+        }
+      },
+      {
+        "json": {
+          "name": "adidas",
+          "number_item": 2
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTML readable format",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML readable format": {
+      "main": [
+        []
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prompt": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0433d1be-32fd-4ada-9eff-c46b2970c4c1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4dc5065f4a4617bd552d8c5c906e04582228880f63aafefbc0e74ac4c8375f55"
+  },
+  "id": "unMBRLaD75ndMvex",
+  "tags": []
+}
