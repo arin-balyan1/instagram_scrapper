@@ -1,7 +1,7 @@
 # Project Overview
 This n8n workflow is designed to automate the process of scraping public data from Instagram business profiles and leveraging Artificial Intelligence to provide a unique "IG Score" – a sentiment-informed overall rating of the profile's public presence. The workflow fetches the 12 most recent posts without requiring a login, extracts key statistics (captions, likes, comments, timestamps), and then presents this information, along with an AI-generated score, in a readable format.
 
-![image alt](https://github.com/arin-balyan1/FittVybe-Project/blob/bd68713df2a3bcb75558080ce20a3cee064460bb/1.png)
+![image alt](https://github.com/arin-balyan1/instagram_scrapper/blob/85c1feeec4a36e6bf34ded07acaac7d27a71387a/workflow.png)
 
 # Features
 1.Instagram Data Scraper: Automatically scrapes the 12 most recent posts (images/videos) from a given Instagram business page URL or handle.
