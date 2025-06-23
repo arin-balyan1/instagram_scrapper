@@ -1,7 +1,7 @@
-###Project Overview
+# Project Overview
 This n8n workflow is designed to automate the process of scraping public data from Instagram business profiles and leveraging Artificial Intelligence to provide a unique "IG Score" – a sentiment-informed overall rating of the profile's public presence. The workflow fetches the 12 most recent posts without requiring a login, extracts key statistics (captions, likes, comments, timestamps), and then presents this information, along with an AI-generated score, in a readable format.
 
-##Features
+# Features
 1.Instagram Data Scraper: Automatically scrapes the 12 most recent posts (images/videos) from a given Instagram business page URL or handle.
 
 2.Detailed Post Information: Extracts and displays the image/video URLs, caption snippets, like counts, comment counts, and exact posting timestamps for each of the 12 posts.
@@ -14,11 +14,11 @@ This n8n workflow is designed to automate the process of scraping public data fr
 
 6.Bonus #3: One-Click n8n Cloud Import: The workflow is designed for seamless import and execution in an n8n 1.0+ cloud environment, requiring minimal setup beyond API keys.
 
-##Setup Instructions
+# Setup Instructions
 To get this n8n workflow up and running, follow these steps:
 
 
-##Prerequisites
+# Prerequisites
 
 1.n8n Instance (1.0+): You need access to an n8n instance (local, desktop, or cloud). This workflow has been developed and tested on n8n version 1.0+.
 
