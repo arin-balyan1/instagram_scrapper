@@ -1,4 +1,4 @@
-##Project Overview
+#Project Overview
 This n8n workflow is designed to automate the process of scraping public data from Instagram business profiles and leveraging Artificial Intelligence to provide a unique "IG Score" – a sentiment-informed overall rating of the profile's public presence. The workflow fetches the 12 most recent posts without requiring a login, extracts key statistics (captions, likes, comments, timestamps), and then presents this information, along with an AI-generated score, in a readable format.
 
 ##Features
